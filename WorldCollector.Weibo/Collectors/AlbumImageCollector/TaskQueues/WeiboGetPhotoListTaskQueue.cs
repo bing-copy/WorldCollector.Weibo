@@ -31,7 +31,20 @@ namespace WorldCollector.Weibo.Collectors.AlbumImageCollector.TaskQueues
             {
                 var html = new CQ(data);
                 var imageData = html[".photo_cont>a.ph_ar_box>img.photo_pict"].Select(t => t.GetAttribute("src"))
-                    .Where(t => !string.IsNullOrEmpty(t)).Select(t => Regex.Replace(t, "/thumb\\d+?/", "/large/"));
+                    .Where(t => !string.IsNullOrEmpty(t)).Select(t =>
+                    {
+                        var r = Regex.Replace(t, "/thumb\\d+?/", "/large/");
+                        if (r.StartsWith("//"))
+                        {
+                            r = $"https:{r}";
+                        }
+                        var index = r.IndexOf('?');
+                        if (index > -1)
+                        {
+                            r = r.Substring(0, index);
+                        }
+                        return r;
+                    });
                 var imageDownloadTaskData = imageData.Select(a => (TaskData) new DownloadImageTaskData
                 {
                     Url = a,
